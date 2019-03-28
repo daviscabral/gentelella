@@ -1,100 +1,123 @@
-define(function(require) {
+import * as zrUtil from 'zrender/src/core/util';
+import Component from '../../model/Component';
 
-    var zrUtil = require('zrender/core/util');
-    var Component = require('../../model/Component');
+import './AxisModel';
 
-    require('./AxisModel');
+export default Component.extend({
 
-    Component.extend({
+    type: 'parallel',
 
-        type: 'parallel',
+    dependencies: ['parallelAxis'],
 
-        dependencies: ['parallelAxis'],
+    /**
+     * @type {module:echarts/coord/parallel/Parallel}
+     */
+    coordinateSystem: null,
 
-        /**
-         * @type {module:echarts/coord/parallel/Parallel}
-         */
-        coordinateSystem: null,
+    /**
+     * Each item like: 'dim0', 'dim1', 'dim2', ...
+     * @type {Array.<string>}
+     * @readOnly
+     */
+    dimensions: null,
 
-        /**
-         * Each item like: 'dim0', 'dim1', 'dim2', ...
-         * @type {Array.<string>}
-         * @readOnly
-         */
-        dimensions: null,
+    /**
+     * Coresponding to dimensions.
+     * @type {Array.<number>}
+     * @readOnly
+     */
+    parallelAxisIndex: null,
 
-        /**
-         * Coresponding to dimensions.
-         * @type {Array.<number>}
-         * @readOnly
-         */
-        parallelAxisIndex: null,
+    layoutMode: 'box',
 
-        defaultOption: {
-            zlevel: 0,                  // 一级层叠
-            z: 0,                       // 二级层叠
-            left: 80,
-            top: 60,
-            right: 80,
-            bottom: 60,
-            // width: {totalWidth} - left - right,
-            // height: {totalHeight} - top - bottom,
+    defaultOption: {
+        zlevel: 0,
+        z: 0,
+        left: 80,
+        top: 60,
+        right: 80,
+        bottom: 60,
+        // width: {totalWidth} - left - right,
+        // height: {totalHeight} - top - bottom,
 
-            layout: 'horizontal',      // 'horizontal' or 'vertical'
+        layout: 'horizontal',      // 'horizontal' or 'vertical'
 
-            parallelAxisDefault: null
-        },
+        // FIXME
+        // naming?
+        axisExpandable: false,
+        axisExpandCenter: null,
+        axisExpandCount: 0,
+        axisExpandWidth: 50,      // FIXME '10%' ?
+        axisExpandRate: 17,
+        axisExpandDebounce: 50,
+        // [out, in, jumpTarget]. In percentage. If use [null, 0.05], null means full.
+        // Do not doc to user until necessary.
+        axisExpandSlideTriggerArea: [-0.15, 0.05, 0.4],
+        axisExpandTriggerOn: 'click', // 'mousemove' or 'click'
 
-        /**
-         * @override
-         */
-        init: function () {
-            Component.prototype.init.apply(this, arguments);
+        parallelAxisDefault: null
+    },
 
-            this.mergeOption({});
-        },
+    /**
+     * @override
+     */
+    init: function () {
+        Component.prototype.init.apply(this, arguments);
 
-        /**
-         * @override
-         */
-        mergeOption: function (newOption) {
-            var thisOption = this.option;
+        this.mergeOption({});
+    },
 
-            newOption && zrUtil.merge(thisOption, newOption, true);
+    /**
+     * @override
+     */
+    mergeOption: function (newOption) {
+        var thisOption = this.option;
 
-            this._initDimensions();
-        },
+        newOption && zrUtil.merge(thisOption, newOption, true);
 
-        /**
-         * Whether series or axis is in this coordinate system.
-         * @param {module:echarts/model/Series|module:echarts/coord/parallel/AxisModel} model
-         * @param {module:echarts/model/Global} ecModel
-         */
-        contains: function (model, ecModel) {
-            var parallelIndex = model.get('parallelIndex');
-            return parallelIndex != null
-                && ecModel.getComponent('parallel', parallelIndex) === this;
-        },
+        this._initDimensions();
+    },
 
-        /**
-         * @private
-         */
-        _initDimensions: function () {
-            var dimensions = this.dimensions = [];
-            var parallelAxisIndex = this.parallelAxisIndex = [];
+    /**
+     * Whether series or axis is in this coordinate system.
+     * @param {module:echarts/model/Series|module:echarts/coord/parallel/AxisModel} model
+     * @param {module:echarts/model/Global} ecModel
+     */
+    contains: function (model, ecModel) {
+        var parallelIndex = model.get('parallelIndex');
+        return parallelIndex != null
+            && ecModel.getComponent('parallel', parallelIndex) === this;
+    },
 
-            var axisModels = zrUtil.filter(this.dependentModels.parallelAxis, function (axisModel) {
-                // Can not use this.contains here, because
-                // initialization has not been completed yet.
-                return axisModel.get('parallelIndex') === this.componentIndex;
-            });
+    setAxisExpand: function (opt) {
+        zrUtil.each(
+            ['axisExpandable', 'axisExpandCenter', 'axisExpandCount', 'axisExpandWidth', 'axisExpandWindow'],
+            function (name) {
+                if (opt.hasOwnProperty(name)) {
+                    this.option[name] = opt[name];
+                }
+            },
+            this
+        );
+    },
 
-            zrUtil.each(axisModels, function (axisModel) {
-                dimensions.push('dim' + axisModel.get('dim'));
-                parallelAxisIndex.push(axisModel.componentIndex);
-            });
-        }
+    /**
+     * @private
+     */
+    _initDimensions: function () {
+        var dimensions = this.dimensions = [];
+        var parallelAxisIndex = this.parallelAxisIndex = [];
 
-    });
+        var axisModels = zrUtil.filter(this.dependentModels.parallelAxis, function (axisModel) {
+            // Can not use this.contains here, because
+            // initialization has not been completed yet.
+            return (axisModel.get('parallelIndex') || 0) === this.componentIndex;
+        }, this);
+
+        zrUtil.each(axisModels, function (axisModel) {
+            dimensions.push('dim' + axisModel.get('dim'));
+            parallelAxisIndex.push(axisModel.componentIndex);
+        });
+    }
 
 });

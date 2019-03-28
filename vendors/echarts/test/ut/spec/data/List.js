@@ -2,7 +2,7 @@ describe('List', function () {
 
     var utHelper = window.utHelper;
 
-    var testCase = utHelper.prepare(['echarts/data/List']);
+    var testCase = utHelper.prepare(['echarts/src/data/List']);
 
     describe('Data Manipulation', function () {
 
@@ -74,6 +74,32 @@ describe('List', function () {
             expect(list.getItemModel(1).option).toEqual([20, 25]);
         });
 
+        testCase('indexOfRawIndex', function (List) {
+            var list = new List(['x']);
+
+            list.initData([]);
+            expect(list.indexOfRawIndex(1)).toEqual(-1);
+
+            list.initData([0]);
+            expect(list.indexOfRawIndex(0)).toEqual(0);
+            expect(list.indexOfRawIndex(1)).toEqual(-1);
+
+            list.initData([0, 1, 2, 3]);
+            expect(list.indexOfRawIndex(1)).toEqual(1);
+            expect(list.indexOfRawIndex(2)).toEqual(2);
+            expect(list.indexOfRawIndex(5)).toEqual(-1);
+
+            list.initData([0, 1, 2, 3, 4]);
+            expect(list.indexOfRawIndex(2)).toEqual(2);
+            expect(list.indexOfRawIndex(3)).toEqual(3);
+            expect(list.indexOfRawIndex(5)).toEqual(-1);
+
+            list.filterSelf(function (idx) {
+                return idx >= 2;
+            });
+            expect(list.indexOfRawIndex(2)).toEqual(0);
+        });
+
         testCase('getDataExtent', function (List) {
             var list = new List(['x', 'y']);
             list.initData([1, 2, 3]);
@@ -120,6 +146,24 @@ describe('List', function () {
             }).mapArray('x', function (x) {
                 return x;
             })).toEqual([20]);
+        });
+
+        testCase('dataProvider', function (List) {
+            var list = new List(['x', 'y']);
+            var typedArray = new Float32Array([10, 10, 20, 20]);
+            list.initData({
+                count: function () {
+                    return typedArray.length / 2;
+                },
+                getItem: function (idx) {
+                    return [typedArray[idx * 2], typedArray[idx * 2 + 1]];
+                }
+            });
+            expect(list.mapArray(['x', 'y'], function (x, y) {
+                return [x, y];
+            })).toEqual([[10, 10], [20, 20]]);
+            expect(list.getRawDataItem(0)).toEqual([10, 10]);
+            expect(list.getItemModel(0).option).toEqual([10, 10]);
         });
     });
 });

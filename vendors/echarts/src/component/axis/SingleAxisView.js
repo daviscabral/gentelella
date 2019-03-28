@@ -1,161 +1,123 @@
-define(function (require) {
 
-    var AxisBuilder = require('./AxisBuilder');
-    var zrUtil =  require('zrender/core/util');
-    var graphic = require('../../util/graphic');
-    var getInterval = AxisBuilder.getInterval;
-    var ifIgnoreOnTick = AxisBuilder.ifIgnoreOnTick;
+import * as zrUtil from 'zrender/src/core/util';
+import AxisBuilder from './AxisBuilder';
+import * as graphic from '../../util/graphic';
+import * as singleAxisHelper from './singleAxisHelper';
+import AxisView from './AxisView';
 
-    var axisBuilderAttrs = [
-        'axisLine', 'axisLabel', 'axisTick', 'axisName'
-    ];
+var getInterval = AxisBuilder.getInterval;
+var ifIgnoreOnTick = AxisBuilder.ifIgnoreOnTick;
 
-    var selfBuilderAttr = 'splitLine'; 
+var axisBuilderAttrs = [
+    'axisLine', 'axisTickLabel', 'axisName'
+];
 
-    var AxisView = require('../../echarts').extendComponentView({
+var selfBuilderAttr = 'splitLine';
 
-        type: 'singleAxis',
+var SingleAxisView = AxisView.extend({
 
-        render: function (axisModel, ecModel) {
+    type: 'singleAxis',
 
-            var group = this.group;
+    axisPointerClass: 'SingleAxisPointer',
 
-            group.removeAll();
+    render: function (axisModel, ecModel, api, payload) {
 
-            var layout =  axisLayout(axisModel);
+        var group = this.group;
 
-            var axisBuilder = new AxisBuilder(axisModel, layout);
+        group.removeAll();
 
-            zrUtil.each(axisBuilderAttrs, axisBuilder.add, axisBuilder);
+        var layout =  singleAxisHelper.layout(axisModel);
 
-            group.add(axisBuilder.getGroup());
+        var axisBuilder = new AxisBuilder(axisModel, layout);
 
-            if (axisModel.get(selfBuilderAttr + '.show')) {
-                this['_' + selfBuilderAttr](axisModel, layout.labelInterval);
+        zrUtil.each(axisBuilderAttrs, axisBuilder.add, axisBuilder);
+
+        group.add(axisBuilder.getGroup());
+
+        if (axisModel.get(selfBuilderAttr + '.show')) {
+            this['_' + selfBuilderAttr](axisModel, layout.labelInterval);
+        }
+
+        SingleAxisView.superCall(this, 'render', axisModel, ecModel, api, payload);
+    },
+
+    _splitLine: function(axisModel, labelInterval) {
+        var axis = axisModel.axis;
+
+        if (axis.scale.isBlank()) {
+            return;
+        }
+
+        var splitLineModel = axisModel.getModel('splitLine');
+        var lineStyleModel = splitLineModel.getModel('lineStyle');
+        var lineWidth = lineStyleModel.get('width');
+        var lineColors = lineStyleModel.get('color');
+        var lineInterval = getInterval(splitLineModel, labelInterval);
+
+        lineColors = lineColors instanceof Array ? lineColors : [lineColors];
+
+        var gridRect = axisModel.coordinateSystem.getRect();
+        var isHorizontal = axis.isHorizontal();
+
+        var splitLines = [];
+        var lineCount = 0;
+
+        var ticksCoords = axis.getTicksCoords();
+
+        var p1 = [];
+        var p2 = [];
+
+        var showMinLabel = axisModel.get('axisLabel.showMinLabel');
+        var showMaxLabel = axisModel.get('axisLabel.showMaxLabel');
+
+        for (var i = 0; i < ticksCoords.length; ++i) {
+            if (ifIgnoreOnTick(
+                axis, i, lineInterval, ticksCoords.length,
+                showMinLabel, showMaxLabel
+            )) {
+                continue;
             }
-        },
-
-        _splitLine: function(axisModel, labelInterval) {
-            var axis = axisModel.axis;
-            var splitLineModel = axisModel.getModel('splitLine');
-            var lineStyleModel = splitLineModel.getModel('lineStyle');
-            var lineWidth = lineStyleModel.get('width');
-            var lineColors = lineStyleModel.get('color');
-            var lineInterval = getInterval(splitLineModel, labelInterval);
-
-            lineColors = lineColors instanceof Array ? lineColors : [lineColors];
-
-            var gridRect = axisModel.coordinateSystem.getRect();
-            var isHorizontal = axis.isHorizontal();
-
-            var splitLines = [];
-            var lineCount = 0;
-
-            var ticksCoords = axis.getTicksCoords();
-
-            var p1 = [];
-            var p2 = [];
-
-            for (var i = 0; i < ticksCoords.length; ++i) {
-                if (ifIgnoreOnTick(axis, i, lineInterval)) {
-                    continue;
-                }
-                var tickCoord = axis.toGlobalCoord(ticksCoords[i]);
-                if (isHorizontal) {
-                    p1[0] = tickCoord;
-                    p1[1] = gridRect.y;
-                    p2[0] = tickCoord;
-                    p2[1] = gridRect.y + gridRect.height;
-                }
-                else {
-                    p1[0] = gridRect.x;
-                    p1[1] = tickCoord;
-                    p2[0] = gridRect.x + gridRect.width;
-                    p2[1] = tickCoord;
-                }
-                var colorIndex = (lineCount++) % lineColors.length;
-                splitLines[colorIndex] = splitLines[colorIndex] || [];
-                splitLines[colorIndex].push(new graphic.Line(
-                    graphic.subPixelOptimizeLine({
-                        shape: {
-                            x1: p1[0],
-                            y1: p1[1],
-                            x2: p2[0],
-                            y2: p2[1]
-                        },
-                        style: {
-                            lineWidth: lineWidth
-                        },
-                        silent: true
-                    })));
+            var tickCoord = axis.toGlobalCoord(ticksCoords[i]);
+            if (isHorizontal) {
+                p1[0] = tickCoord;
+                p1[1] = gridRect.y;
+                p2[0] = tickCoord;
+                p2[1] = gridRect.y + gridRect.height;
             }
-
-            for (var i = 0; i < splitLines.length; ++i) {
-                this.group.add(graphic.mergePath(splitLines[i], {
+            else {
+                p1[0] = gridRect.x;
+                p1[1] = tickCoord;
+                p2[0] = gridRect.x + gridRect.width;
+                p2[1] = tickCoord;
+            }
+            var colorIndex = (lineCount++) % lineColors.length;
+            splitLines[colorIndex] = splitLines[colorIndex] || [];
+            splitLines[colorIndex].push(new graphic.Line(
+                graphic.subPixelOptimizeLine({
+                    shape: {
+                        x1: p1[0],
+                        y1: p1[1],
+                        x2: p2[0],
+                        y2: p2[1]
+                    },
                     style: {
-                        stroke: lineColors[i % lineColors.length],
-                        lineDash: lineStyleModel.getLineDash(),
                         lineWidth: lineWidth
                     },
                     silent: true
-                }));
-            }
-        }
-    });
-
-    function axisLayout(axisModel) {
-
-        var single = axisModel.coordinateSystem;
-        var axis = axisModel.axis;
-        var layout = {};
-
-        var axisPosition = axis.position;
-        var orient = axis.orient;
-
-        var rect = single.getRect();
-        var rectBound = [rect.x, rect.x + rect.width, rect.y, rect.y + rect.height];
-
-        var positionMap = {
-            horizontal: {top: rectBound[2], bottom: rectBound[3]},
-            vertical: {left: rectBound[0], right: rectBound[1]}
-        };
-
-        layout.position = [
-            orient === 'vertical' 
-                ? positionMap.vertical[axisPosition] 
-                : rectBound[0],
-            orient === 'horizontal' 
-                ? positionMap.horizontal[axisPosition] 
-                : rectBound[3]
-        ];
-
-        var r = {horizontal: 0, vertical: 1};
-        layout.rotation = Math.PI / 2 * r[orient];
-
-        var directionMap = {top: -1, bottom: 1, right: 1, left: -1};
-
-        layout.labelDirection = layout.tickDirection  
-            = layout.nameDirection 
-            = directionMap[axisPosition];
-
-        if (axisModel.getModel('axisTick').get('inside')) {
-            layout.tickDirection = -layout.tickDirection;
+                })));
         }
 
-        if (axisModel.getModel('axisLabel').get('inside')) {
-            layout.labelDirection = -layout.labelDirection;
+        for (var i = 0; i < splitLines.length; ++i) {
+            this.group.add(graphic.mergePath(splitLines[i], {
+                style: {
+                    stroke: lineColors[i % lineColors.length],
+                    lineDash: lineStyleModel.getLineDash(lineWidth),
+                    lineWidth: lineWidth
+                },
+                silent: true
+            }));
         }
-
-        var labelRotation = axisModel.getModel('axisLabel').get('rotate');
-        layout.labelRotation = axisPosition === 'top' ? -labelRotation : labelRotation;
-
-        layout.labelInterval = axis.getLabelInterval();
-
-        layout.z2 = 1;
-
-        return layout;
     }
-
-    return AxisView;
-    
 });
+
+export default SingleAxisView;

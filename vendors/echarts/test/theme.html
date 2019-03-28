@@ -1,8 +1,8 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <script src="esl.js"></script>
-        <script src="config.js"></script>
+        <script src="lib/esl.js"></script>
+        <script src="lib/config.js"></script>
     </head>
     <body>
         <style>
@@ -21,12 +21,13 @@
 
             require([
                 'echarts',
-                'theme/dark',
+                'theme/dark'
 
-                'echarts/chart/bar',
-                'echarts/component/legend',
-                'echarts/component/grid',
-                'echarts/component/tooltip'
+                // 'echarts/chart/bar',
+                // 'echarts/component/legend',
+                // 'echarts/component/grid',
+                // 'echarts/component/tooltip',
+                // 'echarts/component/dataZoom'
             ], function (echarts, theme) {
 
                 var chart = echarts.init(document.getElementById('main'), 'dark');
@@ -75,6 +76,10 @@
                         align: 'right'
                     },
                     tooltip: {},
+                    dataZoom: {
+                        start: 10,
+                        end: 20
+                    },
                     xAxis: {
                         data: xAxisData,
                         axisLine: {

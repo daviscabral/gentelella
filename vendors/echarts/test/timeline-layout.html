@@ -1,8 +1,8 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <script src="esl.js"></script>
-        <script src="config.js"></script>
+        <script src="lib/esl.js"></script>
+        <script src="lib/config.js"></script>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
     </head>
     <body>
@@ -31,17 +31,38 @@
         <script>
 
             require([
-                'echarts',
-                'zrender/core/util',
-                'echarts/chart/bar',
-                'echarts/component/legend',
-                'echarts/component/grid',
-                'echarts/component/tooltip',
-                'echarts/component/timeline'
-            ], function (echarts, zrUtil) {
-
-                makeChart({});
-                makeChart({timeline: {inverse: true}});
+                'echarts'
+                // 'zrender/core/util',
+                // 'echarts/chart/bar',
+                // 'echarts/component/legend',
+                // 'echarts/component/grid',
+                // 'echarts/component/tooltip',
+                // 'echarts/component/timeline'
+            ], function (echarts) {
+                var zrUtil = echarts.util;
+                makeChart({
+                    timeline: {
+                        label: {
+                            normal: {
+                                position: 10,
+                                rotate: 45,
+                                textStyle: {
+                                    align: 'right',
+                                    baseline: 'middle'
+                                }
+                            }
+                        }
+                    }
+                });
+                makeChart({
+                    timeline: {
+                        inverse: true,
+                        symbol: 'path://M0,0L10,0L10,10L0,10L0,0z',
+                        symbolSize: [1, 6],
+                        symbolOffset: [0, 3],
+                        symbolRotate: 30
+                    }
+                });
                 makeChart({timeline: {inverse: true, controlStyle: {position: 'right'}}});
 
                 makeChart({timeline: {orient: 'vertical', x: 0, y: 10, width: 55, height: '80%'}});
@@ -101,7 +122,7 @@
                         + encodeHTML(JSON.stringify(opt)) + '</label>';
                     containerEl.appendChild(el);
 
-                    var chart = echarts.init(el.firstChild, null, {renderer: 'canvas'});
+                    var chart = echarts.init(el.firstChild, null, { });
                     chart.setOption(getOption(opt));
                 }
 

@@ -1,8 +1,8 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <script src="esl.js"></script>
-        <script src="config.js"></script>
+        <script src="lib/esl.js"></script>
+        <script src="lib/config.js"></script>
     </head>
     <body>
         <style>
@@ -25,12 +25,12 @@
 
 
             require([
-                'echarts',
-                'echarts/chart/scatter',
-                'echarts/component/legend',
-                'echarts/component/grid',
-                'echarts/component/visualMap',
-                'echarts/component/tooltip'
+                'echarts'
+                // 'echarts/chart/scatter',
+                // 'echarts/component/legend',
+                // 'echarts/component/grid',
+                // 'echarts/component/visualMap',
+                // 'echarts/component/tooltip'
             ], function (echarts) {
 
                 var chart1 = echarts.init(document.getElementById('chart1'));
@@ -155,6 +155,22 @@
                 });
 
                 echarts.connect([chart1, chart2]);
+
+                // bindAction(chart1, chart2);
+                // bindAction(chart2, chart1);
+
+                // function bindAction(fromChart, toChart) {
+                //     fromChart.on('legendselectchanged', function (params) {
+                //         toChart.dispatchAction({type: 'legendToggleSelect', name: params.name}, true);
+                //     });
+                //     fromChart.on('highlight', function (params) {
+                //         toChart.dispatchAction({type: 'highlight', seriesName: params.seriesName}, true);
+                //     });
+                //     fromChart.on('downplay', function (params) {
+                //         toChart.dispatchAction({type: 'downplay', seriesName: params.seriesName}, true);
+                //     });
+                // }
+
 
             });
 

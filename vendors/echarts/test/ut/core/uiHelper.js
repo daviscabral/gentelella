@@ -3,7 +3,7 @@
     var helper = context.uiHelper = {};
 
     // canvas comparing strategy, 'stack' or 'content'
-    var STRATEGY = 'stack';
+    var STRATEGY = 'content';
     // always display images even if no error
     var ALWAYS_SHOW_IMAGE = true;
 
@@ -24,7 +24,20 @@
             var oldImg = doTest(oldE).toDataURL();
             var newImg = doTest(newE).toDataURL();
             if (ALWAYS_SHOW_IMAGE || oldImg !== newImg) {
-                that.addFailedCases(title, oldImg, newImg);
+                // show difference rate of canvas content as string
+                var diff = 0;
+                for (var i = 0; i < oldImg.length; ++i) {
+                    if (oldImg[i] !== newImg[i]) {
+                        ++diff;
+                    }
+                }
+                if (newImg.length > oldImg.length) {
+                    diff += newImg.length - oldImg.length;
+                }
+                var log = 'Different rate: ' + diff + '/' + oldImg.length
+                    + '. ';
+
+                that.addFailedCases(title, oldImg, newImg, log);
             }
             expect(oldImg).toEqual(newImg);
             done();
@@ -200,26 +213,49 @@
      * run test with setOption for whole spec
      * @param  {string}   specName spec name
      * @param  {object[]} suites    arrary of suites
+     * @param {boolean} isTestAll true to test all cases,
+     *                            or false or undefined to the last one only
      */
-    helper.testOptionSpec = function(specName, suites) {
-        for (var sid = 0, slen = suites.length; sid < slen; ++sid) {
-            (function(suiteName, cases) {
-                describe(suiteName, function() {
-                    for (var cid = 0, clen = cases.length; cid < clen; ++cid) {
-                        var name = specName + ' - ' + suiteName + ': '
-                            + cases[cid].name;
-                        if (cases[cid].test === 'equalOption') {
-                            helper.expectEqualOption(name, cases[cid].option1,
-                                cases[cid].option2);
-                        } else if (cases[cid].test === 'notEqualOption') {
-                            helper.expectNotEqualOption(name, cases[cid].option1,
-                                cases[cid].option2);
-                        } else {
-                            helper.testOption(name, cases[cid].option);
-                        }
+    helper.testOptionSpec = function(specName, suites, isTestAll) {
+        if (isTestAll === undefined) {
+            // default value of test all to be true
+            isTestAll = true;
+        }
+
+        var testCases = function(suiteName, cases) {
+            describe(suiteName, function() {
+                var start = isTestAll ? 0 : cases.length - 1;
+                for (var cid = start; cid < cases.length; ++cid) {
+                    if (cases[cid].ignore) {
+                        continue;
                     }
-                });
-            })(suites[sid].name, suites[sid].cases);
+
+                    var name = specName + ' - ' + suiteName + ': '
+                        + cases[cid].name;
+                    if (cases[cid].cases) {
+                        // another level of cases
+                        testCases(name, cases[cid].cases);
+                        return;
+                    }
+                    if (cases[cid].test === 'equalOption') {
+                        helper.expectEqualOption(name, cases[cid].option1,
+                            cases[cid].option2);
+                        // helper.testOption(name + ', same as last version',
+                        //     cases[cid].option1);
+                    } else if (cases[cid].test === 'notEqualOption') {
+                        helper.expectNotEqualOption(name, cases[cid].option1,
+                            cases[cid].option2);
+                        // helper.testOption(name + ', same as last version',
+                        //     cases[cid].option1);
+                    } else {
+                        helper.testOption(name, cases[cid].option);
+                    }
+                }
+            });
+        };
+        var start = isTestAll ? 0 : suites.length - 1;
+        for (var sid = start, slen = suites.length; sid < slen; ++sid) {
+            testCases(suites[sid].name, suites[sid].cases);
         }
     }
 
@@ -227,13 +263,19 @@
      * @param {string} name name of the test
      * @param {string} oldImgSrc old canvas.toDataURL value
      * @param {string} newImgSrc new canvas.toDataURL value
+     * @param {string} extraLog  extra log information
      * add a failed case in dom
      */
-    helper.addFailedCases = function(name, oldImgSrc, newImgSrc) {
+    helper.addFailedCases = function(name, oldImgSrc, newImgSrc, extraLog) {
         // group of this case
         var group = document.createElement('div');
         var title = document.createElement('h6');
-        title.innerHTML = name + '. Here are old, new, and diff images.';
+        var log = name + ': ';
+        if (extraLog !== undefined) {
+            log += extraLog;
+        }
+        log += 'Here are old, new, and diff images.';
+        title.innerHTML = log;
         group.appendChild(title);
 
         // old image and new image

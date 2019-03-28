@@ -1,6 +1,6 @@
 {
   "name": "datatables.net-buttons-bs",
-  "description": "Buttons for DataTables with styling for [Bootstrap](http://getbootstrap.com/)",
+  "description": "Buttons for DataTables with styling for [Bootstrap 3](http://getbootstrap.com/)",
   "main": [
     "js/buttons.bootstrap.js",
     "css/buttons.bootstrap.css"
@@ -40,12 +40,12 @@
   ],
   "homepage": "https://datatables.net",
   "license": "MIT",
-  "version": "1.2.1",
-  "_release": "1.2.1",
+  "version": "1.5.6",
+  "_release": "1.5.6",
   "_resolution": {
     "type": "version",
-    "tag": "1.2.1",
-    "commit": "14a9a2586190c38ac99a6d88ae3395e3a837acc3"
+    "tag": "1.5.6",
+    "commit": "96b645e7824940b35b7d9ceaca9f8b3bb1dcf474"
   },
   "_source": "https://github.com/DataTables/Dist-DataTables-Buttons-Bootstrap.git",
   "_target": "^1.1.2",

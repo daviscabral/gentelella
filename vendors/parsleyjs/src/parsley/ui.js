@@ -1,7 +1,7 @@
 import $ from 'jquery';
-import ParsleyUtils from './utils';
+import Utils from './utils';
 
-var ParsleyUI = {};
+var UI = {};
 
 var diffResults = function (newResult, oldResult, deep) {
   var added = [];
@@ -29,17 +29,17 @@ var diffResults = function (newResult, oldResult, deep) {
   };
 };
 
-ParsleyUI.Form = {
+UI.Form = {
 
   _actualizeTriggers: function () {
     this.$element.on('submit.Parsley', evt => { this.onSubmitValidate(evt); });
-    this.$element.on('click.Parsley', 'input[type="submit"], button[type="submit"]', evt => { this.onSubmitButton(evt); });
+    this.$element.on('click.Parsley', Utils._SubmitSelector, evt => { this.onSubmitButton(evt); });
 
     // UI could be disabled
     if (false === this.options.uiEnabled)
       return;
 
-    this.$element.attr('novalidate', '');
+    this.element.setAttribute('novalidate', '');
   },
 
   focus: function () {
@@ -70,7 +70,7 @@ ParsleyUI.Form = {
 
 };
 
-ParsleyUI.Field = {
+UI.Field = {
 
   _reflowUI: function () {
     this._buildUI();
@@ -196,6 +196,8 @@ ParsleyUI.Field = {
 
   _addError: function (name, {message, assert}) {
     this._insertErrorWrapper();
+    this._ui.$errorClassHandler
+      .attr('aria-describedby', this._ui.errorsWrapperId);
     this._ui.$errorsWrapper
       .addClass('filled')
       .append(
@@ -213,6 +215,8 @@ ParsleyUI.Field = {
   },
 
   _removeError: function (name) {
+    this._ui.$errorClassHandler
+      .removeAttr('aria-describedby');
     this._ui.$errorsWrapper
       .removeClass('filled')
       .find('.parsley-' + name)
@@ -236,7 +240,7 @@ ParsleyUI.Field = {
     var _ui = {};
 
     // Give field its Parsley id in DOM
-    this.$element.attr(this.options.namespace + 'id', this.__id__);
+    this.element.setAttribute(this.options.namespace + 'id', this.__id__);
 
     /** Generate important UI elements and store them in this **/
     // $errorClassHandler is the $element that woul have parsley-error and parsley-success classes
@@ -256,19 +260,35 @@ ParsleyUI.Field = {
 
   // Determine which element will have `parsley-error` and `parsley-success` classes
   _manageClassHandler: function () {
-    // An element selector could be passed through DOM with `data-parsley-class-handler=#foo`
+    // Class handled could also be determined by function given in Parsley options
     if ('string' === typeof this.options.classHandler && $(this.options.classHandler).length)
       return $(this.options.classHandler);
 
     // Class handled could also be determined by function given in Parsley options
-    var $handler = this.options.classHandler.call(this, this);
+    var $handlerFunction = this.options.classHandler;
 
-    // If this function returned a valid existing DOM element, go for it
-    if ('undefined' !== typeof $handler && $handler.length)
-      return $handler;
+    // It might also be the function name of a global function
+    if ('string' === typeof this.options.classHandler && 'function' === typeof window[this.options.classHandler])
+      $handlerFunction = window[this.options.classHandler];
 
-    // Otherwise, if simple element (input, texatrea, select...) it will perfectly host the classes
-    if (!this.options.multiple || this.$element.is('select'))
+    if ('function' === typeof $handlerFunction) {
+      var $handler = $handlerFunction.call(this, this);
+
+      // If this function returned a valid existing DOM element, go for it
+      if ('undefined' !== typeof $handler && $handler.length)
+        return $handler;
+    } else if ('object' === typeof $handlerFunction && $handlerFunction instanceof jQuery && $handlerFunction.length) {
+      return $handlerFunction;
+    } else if ($handlerFunction) {
+      Utils.warn('The class handler `' + $handlerFunction + '` does not exist in DOM nor as a global JS function');
+    }
+
+    return this._inputHolder();
+  },
+
+  _inputHolder: function() {
+    // if simple element (input, texatrea, select...) it will perfectly host the classes and precede the error container
+    if (!this.options.multiple || this.element.nodeName === 'SELECT')
       return this.$element;
 
     // But if multiple element (radio, checkbox), that would be their parent
@@ -276,27 +296,28 @@ ParsleyUI.Field = {
   },
 
   _insertErrorWrapper: function () {
-    var $errorsContainer;
+    var $errorsContainer = this.options.errorsContainer;
 
     // Nothing to do if already inserted
     if (0 !== this._ui.$errorsWrapper.parent().length)
       return this._ui.$errorsWrapper.parent();
 
-    if ('string' === typeof this.options.errorsContainer) {
-      if ($(this.options.errorsContainer).length)
-        return $(this.options.errorsContainer).append(this._ui.$errorsWrapper);
+    if ('string' === typeof $errorsContainer) {
+      if ($($errorsContainer).length)
+        return $($errorsContainer).append(this._ui.$errorsWrapper);
+      else if ('function' === typeof window[$errorsContainer])
+        $errorsContainer = window[$errorsContainer];
       else
-        ParsleyUtils.warn('The errors container `' + this.options.errorsContainer + '` does not exist in DOM');
-    } else if ('function' === typeof this.options.errorsContainer)
-      $errorsContainer = this.options.errorsContainer.call(this, this);
+        Utils.warn('The errors container `' + $errorsContainer + '` does not exist in DOM nor as a global JS function');
+    }
 
-    if ('undefined' !== typeof $errorsContainer && $errorsContainer.length)
+    if ('function' === typeof $errorsContainer)
+      $errorsContainer = $errorsContainer.call(this, this);
+
+    if ('object' === typeof $errorsContainer && $errorsContainer.length)
       return $errorsContainer.append(this._ui.$errorsWrapper);
 
-    var $from = this.$element;
-    if (this.options.multiple)
-      $from = $from.parent();
-    return $from.after(this._ui.$errorsWrapper);
+    return this._inputHolder().after(this._ui.$errorsWrapper);
   },
 
   _actualizeTriggers: function () {
@@ -306,25 +327,29 @@ ParsleyUI.Field = {
     // Remove Parsley events already bound on this field
     $toBind.off('.Parsley');
     if (this._failedOnce)
-      $toBind.on(ParsleyUtils.namespaceEvents(this.options.triggerAfterFailure, 'Parsley'), () => {
-        this.validate();
+      $toBind.on(Utils.namespaceEvents(this.options.triggerAfterFailure, 'Parsley'), () => {
+        this._validateIfNeeded();
       });
-    else if (trigger = ParsleyUtils.namespaceEvents(this.options.trigger, 'Parsley')) {
+    else if (trigger = Utils.namespaceEvents(this.options.trigger, 'Parsley')) {
       $toBind.on(trigger, event => {
-        this._eventValidate(event);
+        this._validateIfNeeded(event);
       });
     }
   },
 
-  _eventValidate: function (event) {
+  _validateIfNeeded: function (event) {
     // For keyup, keypress, keydown, input... events that could be a little bit obstrusive
     // do not validate if val length < min threshold on first validation. Once field have been validated once and info
     // about success or failure have been displayed, always validate with this trigger to reflect every yalidation change.
-    if (/key|input/.test(event.type))
+    if (event && /key|input/.test(event.type))
       if (!(this._ui && this._ui.validationInformationVisible) && this.getValue().length <= this.options.validationThreshold)
         return;
 
-    this.validate();
+    if (this.options.debounce) {
+      window.clearTimeout(this._debounced);
+      this._debounced = window.setTimeout(() => this.validate(), this.options.debounce);
+    } else
+      this.validate();
   },
 
   _resetUI: function () {
@@ -372,4 +397,4 @@ ParsleyUI.Field = {
   }
 };
 
-export default ParsleyUI;
+export default UI;

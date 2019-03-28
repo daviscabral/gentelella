@@ -1,9 +1,9 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <script src="esl.js"></script>
-        <script src="config.js"></script>
-        <link rel="stylesheet" href="reset.css">
+        <script src="lib/esl.js"></script>
+        <script src="lib/config.js"></script>
+        <link rel="stylesheet" href="lib/reset.css">
         <style>
             #main {
                 position: relative;
@@ -45,16 +45,31 @@
 
 
             require([
-                'echarts',
-                'zrender/core/util',
-                'echarts/chart/scatter',
-                'echarts/component/grid',
-                'echarts/component/visualMap'
-            ], function (echarts, zrUtil) {
-
+                'echarts'
+                // 'zrender/core/util',
+                // 'echarts/chart/scatter',
+                // 'echarts/component/grid',
+                // 'echarts/component/visualMap'
+            ], function (echarts) {
+                var zrUtil = echarts.util;
                 makeChart({
                     show: true,
                     splitNumber: 7,
+                    minOpen: true,
+                    maxOpen: true,
+                    backgroundColor: '#eee',
+                    padding: [10, 30, 5, 40],
+                    visualSelected: {
+                        data: ['red', 'pink']
+                    }
+                });
+                makeChart({
+                    show: true,
+                    splitNumber: 7,
+                    minOpen: true,
+                    maxOpen: true,
+                    showLabel: true,
+                    text: ['Number Result'],
                     backgroundColor: '#eee',
                     padding: [10, 30, 5, 40],
                     visualSelected: {
@@ -87,6 +102,18 @@
                     }
                 });
                 makeChart({
+                    splitNumber: 5,
+                    right: 0,
+                    dimension: 3,
+                    text: ['Number Result'],
+                    showLabel: true,
+                    backgroundColor: '#eee',
+                    visualSelected: {
+                        type: 'symbol',
+                        data: ['roundRect', 'rect', 'diamond', 'line', 'circle']
+                    }
+                });
+                makeChart({
                     splitNumber: 6,
                     top: 0,
                     left: 0,
@@ -101,6 +128,19 @@
                     splitNumber: 5,
                     top: 20,
                     right: 0,
+                    orient: 'horizontal',
+                    dimension: 3,
+                    backgroundColor: '#eee',
+                    visualSelected: {
+                        type: 'colorLightness'
+                    }
+                });
+                makeChart({
+                    splitNumber: 5,
+                    top: 20,
+                    right: 0,
+                    text: ['Number \nRe', 'Number \nRe2'],
+                    showLabel: true,
                     orient: 'horizontal',
                     dimension: 3,
                     backgroundColor: '#eee',
@@ -382,7 +422,7 @@
                     el.innerHTML = '<div class="ec"></div><label><pre>' + encodeHTML(label) + '</pre></label>';
                     containerEl.appendChild(el);
 
-                    var chart = echarts.init(el.firstChild, null, {renderer: 'canvas'});
+                    var chart = echarts.init(el.firstChild, null, { });
                     chart.setOption(zrUtil.merge(opt, getOption()));
                 }
 

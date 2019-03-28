@@ -1,8 +1,8 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <script src="./esl.js"></script>
-        <script src="./config.js"></script>
+        <script src="./lib/esl.js"></script>
+        <script src="./lib/config.js"></script>
     </head>
     <body>
         <style>
@@ -30,7 +30,9 @@
         </style>
         <div id="main"></div>
         <div id="middle">
-            上面是降水量，下面是流量。这是两个echarts实例。
+            上面是降水量，下面是流量。这是三个echarts实例。<br>
+            三个都会 dataZoom 同步。<br>
+            前两个会 tooltip 同步，第三个不 tooltip 同步。
         </div>
         <div id="main2"></div>
         <div id="main3"></div>
@@ -39,15 +41,15 @@
 
             require([
                 'data/rainfall.json',
-                'echarts',
-                'echarts/chart/bar',
-                'echarts/chart/line',
-                'echarts/component/legend',
-                'echarts/component/tooltip',
-                'echarts/component/grid',
-                'echarts/component/axis',
-                'echarts/component/toolbox',
-                'echarts/component/dataZoomInside'
+                'echarts'
+                // 'echarts/chart/bar',
+                // 'echarts/chart/line',
+                // 'echarts/component/legend',
+                // 'echarts/component/tooltip',
+                // 'echarts/component/grid',
+                // 'echarts/component/axis',
+                // 'echarts/component/toolbox',
+                // 'echarts/component/dataZoomInside'
             ], function (data, echarts) {
                 var chart1 = createChart1(data, echarts);
                 var chart2 = createChart2(data, echarts);
@@ -77,7 +79,7 @@
             function createChart1(data, echarts) {
 
                 var chart = echarts.init(document.getElementById('main'), null, {
-                    renderer: 'canvas'
+
                 });
 
                 chart.setOption({
@@ -158,7 +160,7 @@
             function createChart2(data, echarts) {
 
                 var chart = echarts.init(document.getElementById('main2'), null, {
-                    renderer: 'canvas'
+
                 });
 
                 chart.setOption({
@@ -233,7 +235,7 @@
             function createChart3(data, echarts) {
 
                 var chart = echarts.init(document.getElementById('main3'), null, {
-                    renderer: 'canvas'
+
                 });
 
                 chart.setOption({
@@ -283,6 +285,11 @@
                         }
                     ],
                     series: [
+                        {
+                            name: 'NaN',
+                            type: 'line',
+                            data: data.flow.map(function () { return null; })
+                        },
                         {
                             name: '流量',
                             type: 'line',

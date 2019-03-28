@@ -2,8 +2,8 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <script src="esl.js"></script>
-        <script src="config.js"></script>
+        <script src="lib/esl.js"></script>
+        <script src="lib/config.js"></script>
         <script src="lib/jquery.min.js"></script>
         <script src="lib/facePrint.js"></script>
     </head>
@@ -19,12 +19,13 @@
         <script>
 
             require([
-                'echarts',
-                'echarts/chart/map',
-                'echarts/component/title',
-                'echarts/component/legend',
-                'echarts/component/visualMap',
-                'echarts/component/markPoint'
+                'echarts'
+                // 'echarts/chart/map',
+                // 'echarts/component/title',
+                // 'echarts/component/legend',
+                // 'echarts/component/visualMap',
+                // 'echarts/component/markPoint',
+                // 'echarts/component/tooltip'
             ], function (echarts) {
 
                 require(['map/js/china'], function () {
@@ -41,9 +42,10 @@
                             borderWidth: 0,
                             shadowColor: 'rgba(0, 0, 0, 0.5)'
                         }
-                    }
+                    };
 
                     chart.setOption({
+                        tooltip: {},
                         title : {
                             text: 'iphone销量',
                             subtext: '纯属虚构',
@@ -70,9 +72,9 @@
                                 map: 'china',
                                 itemStyle: itemStyle,
                                 showLegendSymbol: true,
-                                zoom: 10,
+                                // zoom: 10,
+                                // center: [115.97, 29.71],
                                 roam: true,
-                                center: [115.97, 29.71],
                                 markPoint: {
                                     data: [{
                                         coord: [115.97, 29.71]
@@ -80,7 +82,25 @@
                                 },
                                 label: {
                                     normal: {
-                                        show: true
+                                        show: true,
+                                        rotate: 40,
+                                        formatter: '{b}：{value|{c}}',
+                                        // position: 'inside',
+                                        backgroundColor: '#fff',
+                                        padding: [3, 5],
+                                        borderRadius: 3,
+                                        borderWidth: 1,
+                                        borderColor: 'rgba(0,0,0,0.5)',
+                                        color: '#777',
+                                        rich: {
+                                            value: {
+                                                color: '#019D2D',
+                                                fontSize: 14,
+                                                // fontWeight: 'bold'
+                                                // textBorderWidth: 2,
+                                                // textBorderColor: '#000'
+                                            }
+                                        }
                                     },
                                     emphasis: {
                                         show: true
@@ -185,6 +205,17 @@
                             }
                         ]
                     });
+
+                    chart.on('click', function (param) {
+                        console.log(param);
+                    });
+                    // setTimeout(function () {
+                    //     chart.setOption({
+                    //         series: [{
+                    //             zoom: 5
+                    //         }]
+                    //     });
+                    // }, 2000);
                 });
             });
 

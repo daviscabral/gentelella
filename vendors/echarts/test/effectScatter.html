@@ -1,8 +1,8 @@
 <html>
     <head>
         <meta charset='utf-8'>
-        <script src='esl.js'></script>
-        <script src='config.js'></script>
+        <script src='lib/esl.js'></script>
+        <script src='lib/config.js'></script>
         <script src='lib/jquery.min.js'></script>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
     </head>
@@ -18,12 +18,12 @@
         <script>
 
             require([
-                'echarts',
+                'echarts'
 
-                'echarts/chart/scatter',
-                'echarts/chart/effectScatter',
-                'echarts/component/legend',
-                'echarts/component/geo'
+                // 'echarts/chart/scatter',
+                // 'echarts/chart/effectScatter',
+                // 'echarts/component/legend',
+                // 'echarts/component/geo'
             ], function (echarts) {
 
                 var data = [
@@ -506,7 +506,7 @@
                                 symbolSize: function (val) {
                                     return val[2] / 10;
                                 },
-                                showEffectOn: 'emphasis',
+                                showEffectOn: 'render',
                                 rippleEffect: {
                                     brushType: 'stroke'
                                 },
@@ -529,7 +529,20 @@
                             }
                         ]
                     });
+
+                    setInterval(function () {
+                        myChart.setOption({
+                            series: [{
+                                name: 'Top 5',
+                                data: convertData(data.sort(function (a, b) {
+                                    return b.value - a.value;
+                                }).slice(0, Math.round(6 * Math.random())))
+                            }]
+                        });
+                    }, 2000);
+
                 });
+
             });
 
         </script>

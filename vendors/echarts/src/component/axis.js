@@ -1,8 +1,2 @@
-// TODO boundaryGap
-define(function(require) {
-    'use strict';
-
-    require('../coord/cartesian/AxisModel');
-
-    require('./axis/AxisView');
-});
+import '../coord/cartesian/AxisModel';
+import './axis/CartesianAxisView';

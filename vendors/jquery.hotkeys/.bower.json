@@ -30,11 +30,11 @@
     "MIT",
     "GPL-2.0"
   ],
-  "_release": "1ec07a6a19",
+  "_release": "f24f1da275",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "1ec07a6a1900104ba56d049551acaaa83e8417d6"
+    "commit": "f24f1da275aab7881ab501055c256add6f690de4"
   },
   "_source": "https://github.com/jeresig/jquery.hotkeys.git",
   "_target": "master",

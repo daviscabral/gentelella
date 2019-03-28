@@ -1,64 +1,64 @@
-define(function (require) {
+import createListFromArray from '../helper/createListFromArray';
+import SeriesModel from '../../model/Series';
 
-    'use strict';
+export default SeriesModel.extend({
 
-    var createListFromArray = require('../helper/createListFromArray');
-    var SeriesModel = require('../../model/Series');
+    type: 'series.effectScatter',
 
-    return SeriesModel.extend({
+    dependencies: ['grid', 'polar'],
 
-        type: 'series.effectScatter',
+    getInitialData: function (option, ecModel) {
+        var list = createListFromArray(option.data, this, ecModel);
+        return list;
+    },
 
-        dependencies: ['grid', 'polar'],
+    brushSelector: 'point',
 
-        getInitialData: function (option, ecModel) {
-            var list = createListFromArray(option.data, this, ecModel);
-            return list;
+    defaultOption: {
+        coordinateSystem: 'cartesian2d',
+        zlevel: 0,
+        z: 2,
+        legendHoverLink: true,
+
+        effectType: 'ripple',
+
+        progressive: 0,
+
+        // When to show the effect, option: 'render'|'emphasis'
+        showEffectOn: 'render',
+
+        // Ripple effect config
+        rippleEffect: {
+            period: 4,
+            // Scale of ripple
+            scale: 2.5,
+            // Brush type can be fill or stroke
+            brushType: 'fill'
         },
 
-        defaultOption: {
-            coordinateSystem: 'cartesian2d',
-            zlevel: 0,
-            z: 2,
-            legendHoverLink: true,
+        // Cartesian coordinate system
+        // xAxisIndex: 0,
+        // yAxisIndex: 0,
 
-            effectType: 'ripple',
+        // Polar coordinate system
+        // polarIndex: 0,
 
-            // When to show the effect, option: 'render'|'emphasis'
-            showEffectOn: 'render',
+        // Geo coordinate system
+        // geoIndex: 0,
 
-            // Ripple effect config
-            rippleEffect: {
-                period: 4,
-                // Scale of ripple
-                scale: 2.5,
-                // Brush type can be fill or stroke
-                brushType: 'fill'
-            },
+        // symbol: null,        // 图形类型
+        symbolSize: 10          // 图形大小，半宽（半径）参数，当图形为方向或菱形则总宽度为symbolSize * 2
+        // symbolRotate: null,  // 图形旋转控制
 
-            // Cartesian coordinate system
-            xAxisIndex: 0,
-            yAxisIndex: 0,
+        // large: false,
+        // Available when large is true
+        // largeThreshold: 2000,
 
-            // Polar coordinate system
-            polarIndex: 0,
+        // itemStyle: {
+        //     normal: {
+        //         opacity: 1
+        //     }
+        // }
+    }
 
-            // Geo coordinate system
-            geoIndex: 0,
-
-            // symbol: null,        // 图形类型
-            symbolSize: 10          // 图形大小，半宽（半径）参数，当图形为方向或菱形则总宽度为symbolSize * 2
-            // symbolRotate: null,  // 图形旋转控制
-
-            // large: false,
-            // Available when large is true
-            // largeThreshold: 2000,
-
-            // itemStyle: {
-            //     normal: {
-            //         opacity: 1
-            //     }
-            // }
-        }
-    });
 });

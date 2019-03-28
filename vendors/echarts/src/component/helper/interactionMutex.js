@@ -1,25 +1,37 @@
-define(function (require) {
+import * as echarts from '../../echarts';
 
-    var ATTR = '\0_ec_interaction_mutex';
+var ATTR = '\0_ec_interaction_mutex';
 
-    var interactionMutex = {
+export function take(zr, resourceKey, userKey) {
+    var store = getStore(zr);
+    store[resourceKey] = userKey;
+}
 
-        take: function (key, zr) {
-            getStore(zr)[key] = true;
-        },
+export function release(zr, resourceKey, userKey) {
+    var store = getStore(zr);
+    var uKey = store[resourceKey];
 
-        release: function (key, zr) {
-            getStore(zr)[key] = false;
-        },
-
-        isTaken: function (key, zr) {
-            return !!getStore(zr)[key];
-        }
-    };
-
-    function getStore(zr) {
-        return zr[ATTR] || (zr[ATTR] = {});
+    if (uKey === userKey) {
+        store[resourceKey] = null;
     }
+}
 
-    return interactionMutex;
-});
+export function isTaken(zr, resourceKey) {
+    return !!getStore(zr)[resourceKey];
+}
+
+function getStore(zr) {
+    return zr[ATTR] || (zr[ATTR] = {});
+}
+
+/**
+ * payload: {
+ *     type: 'takeGlobalCursor',
+ *     key: 'dataZoomSelect', or 'brush', or ...,
+ *         If no userKey, release global cursor.
+ * }
+ */
+echarts.registerAction(
+    {type: 'takeGlobalCursor', event: 'globalCursorTaken', update: 'update'},
+    function () {}
+);

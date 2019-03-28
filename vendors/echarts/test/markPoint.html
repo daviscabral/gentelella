@@ -1,8 +1,8 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <script src="esl.js"></script>
-        <script src="config.js"></script>
+        <script src="lib/esl.js"></script>
+        <script src="lib/config.js"></script>
     </head>
     <body>
         <style>
@@ -15,16 +15,16 @@
         <script>
 
             require([
-                'echarts',
-                'echarts/chart/line',
-                'echarts/component/legend',
-                'echarts/component/grid',
-                'echarts/component/tooltip',
-                'echarts/component/markPoint'
+                'echarts'
+                // 'echarts/chart/line',
+                // 'echarts/component/legend',
+                // 'echarts/component/grid',
+                // 'echarts/component/tooltip',
+                // 'echarts/component/markPoint'
             ], function (echarts) {
 
                 var chart = echarts.init(document.getElementById('main'), null, {
-                    renderer: 'canvas'
+
                 });
 
                 var xAxisData = [];
@@ -139,7 +139,7 @@
                                 label: {
                                     normal: {
                                         formatter: function (param) {
-                                            return param.name + ' ' + param.value;
+                                            return param.name + ' ' + (param.value || '');
                                         },
                                         textStyle: {
                                             color: '#000'
@@ -148,6 +148,12 @@
                                     }
                                 },
                                 data: [
+                                    {
+                                        name: '任意屏幕位置',
+                                        value: 111,
+                                        extData: {a: 1, b:2},
+                                        x: 50, y: 100
+                                    },
                                     {
                                         name: '000000000',
                                         coord: ['类目2', 0.6],
@@ -173,6 +179,11 @@
                                         name: '平均值',
                                         type: 'average',
                                         value: 1
+                                    },
+                                    {
+                                        name: 'Y轴固定',
+                                        xAxis: 'max',
+                                        y: 100
                                     }
                                 ]
                             }
