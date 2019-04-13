@@ -1,5 +1,6 @@
 {
   "name": "jQuery-Smart-Wizard",
+  "version": "3.3.1",
   "homepage": "https://github.com/mstratman/jQuery-Smart-Wizard",
   "authors": [
     "Dipu Raj <hello@techlaboratory.net>",
@@ -14,14 +15,5 @@
     "bower_components",
     "test",
     "tests"
-  ],
-  "_release": "1521955fbc",
-  "_resolution": {
-    "type": "branch",
-    "branch": "master",
-    "commit": "1521955fbcbf09b55cefdd5ff51109417c0920d5"
-  },
-  "_source": "https://github.com/daviscabral/jQuery-Smart-Wizard.git",
-  "_target": "master",
-  "_originalSource": "https://github.com/daviscabral/jQuery-Smart-Wizard.git"
+  ]
 }
